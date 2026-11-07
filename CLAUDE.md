@@ -78,4 +78,4 @@ Collection site on http://localhost:8080 with local storage in `data/collect_dev
 $env:COLLECT_LOCAL = "1"; uv run flask --app "ml.collect.app:create_app()" run --port 8080
 ```
 
-Make a local invite link first: `uv run python -m ml.collect.make_invites 1 --local --url http://localhost:8080` (the link goes in `data/invites.csv`). The microphone only works on `localhost` or HTTPS, so test on phones after deploying.
+Make a local invite link first: `uv run python -m ml.collect.make_invites 1 --local --url http://localhost:8080` (local links go in `data/collect_dev/invites.csv`; only real invites go in `data/invites.csv`). The microphone only works on `localhost` or HTTPS, so test on phones after deploying.

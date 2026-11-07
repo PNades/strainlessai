@@ -4,12 +4,20 @@
     uv run python -m ml.collect.make_invites 1 --local --url http://localhost:5000   # dev store
     uv run python -m ml.collect.make_invites --revoke s007
 
-Each new singer gets the next sequential id (s001, s002, ...) and a random
-URL-safe token (24 random bytes). Only the token's SHA-256 is stored, at
-invites/<hash>.json = {singer_id, created_at, revoked}. The links go to
-data/invites.csv (gitignored, never committed): singer_id,link. Email each
-recruit their link and keep the email -> singer_id mapping in the private
-recruiting sheet, never here.
+Each new singer gets a random URL-safe token (24 random bytes) and the next
+sequential id (s001, s002, ...). An id is never reused: the next number is one
+past the highest id found anywhere in the store (invites, sessions, consent,
+takes) or in that store's invites file, so deleting an invite object or
+losing the file can't bring an old id back. Only the token's SHA-256 is
+stored, at invites/<hash>.json = {singer_id, created_at, revoked}.
+
+Each store has its own invites file (singer_id,link), and the two never mix:
+- the real bucket (COLLECT_BUCKET) -> data/invites.csv
+- a local store (--local, or no bucket set) -> invites.csv inside that store's
+  folder, by default data/collect_dev/invites.csv
+Both are under data/ (gitignored, never committed). Email each recruit their
+link from data/invites.csv and keep the email -> singer_id mapping in the
+private recruiting sheet, never here.
 
 The bucket comes from COLLECT_BUCKET in .env; Prem's gcloud application-default
 credentials are used (gcloud auth application-default login).
@@ -26,11 +34,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from ml.collect.session import token_hash
-from ml.collect.storage import ROOT, Conflict, Store, create_json, get_json, put_json, store_from_env
+from ml.collect.storage import ROOT, Conflict, LocalStore, Store, create_json, get_json, put_json, store_from_env
 
-INVITES_CSV = ROOT / "data" / "invites.csv"
+INVITES_CSV = ROOT / "data" / "invites.csv"  # real invites (bucket) only
+LOCAL_INVITES_NAME = "invites.csv"  # local invites: inside the LocalStore's folder
 TOKEN_BYTES = 24  # spec: at least 16
 _SID = re.compile(r"^s(\d+)$")
+# Store folders keyed by singer_id: sessions/<sid>.json, consent/<sid>.json, takes/<sid>/...
+_SID_FOLDERS = ("sessions/", "consent/", "takes/")
 
 
 def _invites(store: Store) -> list[tuple[str, dict]]:
@@ -42,17 +53,46 @@ def _invites(store: Store) -> list[tuple[str, dict]]:
     return out
 
 
-def next_number(store: Store) -> int:
-    nums = [int(m.group(1)) for _, inv in _invites(store) if (m := _SID.match(inv.get("singer_id", "")))]
-    return max(nums, default=0) + 1
+def invites_csv_for(store: Store) -> Path:
+    """The invites file that belongs to this store (never shared between stores)."""
+    if isinstance(store, LocalStore):
+        return store.root / LOCAL_INVITES_NAME
+    return INVITES_CSV
 
 
-def make_invites(store: Store, n: int, base_url: str, out_csv: Path = INVITES_CSV,
+def _csv_ids(path: Path) -> list[str]:
+    if not path.exists():
+        return []
+    with path.open(newline="", encoding="utf-8") as f:
+        return [row.get("singer_id", "") or "" for row in csv.DictReader(f)]
+
+
+def used_ids(store: Store, out_csv: Path) -> set[str]:
+    """Every singer_id already in the store or in its invites file."""
+    ids = {inv.get("singer_id", "") for _, inv in _invites(store)}
+    for folder in _SID_FOLDERS:
+        for path in store.list(folder):
+            ids.add(path[len(folder):].split("/", 1)[0].removesuffix(".json"))
+    ids.update(_csv_ids(out_csv))
+    return {i for i in ids if _SID.match(i)}
+
+
+def next_number(store: Store, out_csv: Path | None = None) -> int:
+    """One past the highest singer number ever used, so no id repeats."""
+    used = used_ids(store, out_csv or invites_csv_for(store))
+    return max((int(_SID.match(i).group(1)) for i in used), default=0) + 1
+
+
+def make_invites(store: Store, n: int, base_url: str, out_csv: Path | None = None,
                  now: datetime | None = None) -> list[tuple[str, str]]:
-    """Create n invites; append (singer_id, link) rows to out_csv and return them."""
+    """Create n invites; append (singer_id, link) rows to the store's invites file and return them.
+
+    out_csv defaults to invites_csv_for(store); passing another path is for tests.
+    """
+    out_csv = out_csv or invites_csv_for(store)
     now = now or datetime.now(UTC)
     base = base_url.rstrip("/")
-    num = next_number(store)
+    num = next_number(store, out_csv)
     rows = []
     for _ in range(n):
         while True:
@@ -93,7 +133,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--url", help="base URL of the collection site")
     ap.add_argument("--local", action="store_true", help="use the local dev store (data/collect_dev)")
     ap.add_argument("--revoke", metavar="SINGER_ID", help="revoke this singer's invite instead")
-    ap.add_argument("--out", type=Path, default=INVITES_CSV)
     a = ap.parse_args(argv)
     store = store_from_env(local=a.local)
     if a.revoke:
@@ -102,8 +141,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if k else 1
     if not a.n or a.n < 1 or not a.url:
         ap.error("give N >= 1 and --url (or --revoke SINGER_ID)")
-    rows = make_invites(store, a.n, a.url, a.out)
-    print(f"created {len(rows)} invite(s): {rows[0][0]}..{rows[-1][0]}; links appended to {a.out}")
+    out = invites_csv_for(store)
+    rows = make_invites(store, a.n, a.url, out)
+    print(f"created {len(rows)} invite(s): {rows[0][0]}..{rows[-1][0]}; links appended to {out}")
     return 0
 
 

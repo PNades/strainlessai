@@ -188,7 +188,7 @@ A small private website where invited singers record their 16 takes on their own
 **Stack:** Flask + one plain HTML/JavaScript page (no React needed). Every screen meets Section 1.1: singers will use phones and laptops about equally. It imports `api/quality.py` and `ml/features/segment.py`, so Part 5 and Step 6a must be finished before it goes live.
 
 **Invites**
-- `ml/collect/make_invites.py N` creates N new `singer_id`s, each with a random URL-safe token (at least 16 random bytes). It writes `invites.csv` (`singer_id, link`) to Prem's machine only (never git) and stores a hash of each token → singer_id in the bucket under `invites/`.
+- `ml/collect/make_invites.py N` creates N new `singer_id`s, each with a random URL-safe token (at least 16 random bytes). It writes `invites.csv` (`singer_id, link`) to Prem's machine only (never git) and stores a hash of each token → singer_id in the bucket under `invites/`. Each store has its own invites file: real invites (bucket) go to `data/invites.csv`, local test invites (`--local`) to `data/collect_dev/invites.csv`. A `singer_id` is never reused: the next one is past every id already in that store (invites, sessions, consent, takes) or its invites file.
 - Prem emails each recruit their personal link (`https://<collect-url>/s/<token>`). The token is the only login. An invite can be revoked by deleting it; a link stops working 30 days after it's created. [TUNE]
 
 **Singer flow**
