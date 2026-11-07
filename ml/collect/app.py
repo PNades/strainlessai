@@ -189,6 +189,11 @@ def create_app(
             mimetype="text/html",
         )
 
+    @app.get("/favicon.ico")
+    def favicon():
+        # Browsers and bookmark tools ask for the root path even with <link rel="icon">.
+        return send_from_directory(STATIC, "favicon.ico", mimetype="image/vnd.microsoft.icon")
+
     @app.get("/s/<token>")
     def singer_page(token: str):
         return send_from_directory(STATIC, "index.html")

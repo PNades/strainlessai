@@ -117,8 +117,10 @@ $files = @(
 )
 $files += Get-ChildItem (Join-Path $Repo "ml/collect") -File -Filter *.py |
     ForEach-Object { "ml/collect/$($_.Name)" }
-$files += Get-ChildItem (Join-Path $Repo "ml/collect/static") -File |
-    ForEach-Object { "ml/collect/static/$($_.Name)" }
+# Recursive: static/ has subfolders (fonts/).
+$StaticDir = (Resolve-Path (Join-Path $Repo "ml/collect/static")).Path
+$files += Get-ChildItem $StaticDir -File -Recurse |
+    ForEach-Object { "ml/collect/static/" + ($_.FullName.Substring($StaticDir.Length + 1) -replace '\\', '/') }
 foreach ($f in $files) {
     $src = Join-Path $Repo $f
     if (-not (Test-Path $src)) { throw "missing $f" }

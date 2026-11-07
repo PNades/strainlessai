@@ -95,6 +95,10 @@ def test_pages_and_headers(env):
     assert client.get("/audio/alto.wav").status_code == 200
     assert client.get("/audio/bass.wav").status_code == 404
     assert client.get("/static/app.js").status_code == 200
+    r = client.get("/favicon.ico")
+    assert r.status_code == 200 and r.mimetype == "image/vnd.microsoft.icon"
+    for icon in ("favicon-96x96.png", "apple-touch-icon.png", "fonts/lora-latin-600-normal.woff2"):
+        assert client.get(f"/static/{icon}").status_code == 200
 
 
 @pytest.mark.parametrize("headers", [{}, {"X-Invite-Token": "short"}, {"X-Invite-Token": "x" * 32}])
