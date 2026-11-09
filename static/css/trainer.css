@@ -1,11 +1,21 @@
 /* StrainlessAI v1 — pitch trainer. Requires base.css. */
 
+.site-header { --header-side: 6rem; } /* fits the Back button (~92px) */
 .site-header h1 {
   font-size: 1.12rem;
   line-height: 1.3;
   min-width: 0;
 }
 .back-btn { flex-shrink: 0; padding: 0 var(--s3); }
+/* Narrow phones: the centered title wraps between two equal side columns,
+   so shrink it to keep it inside the 56px header. */
+@media (max-width: 459px) {
+  .site-header-inner { column-gap: var(--s2); }
+  .site-header h1 { font-size: 1rem; line-height: 1.2; }
+}
+@media (max-width: 359px) {
+  .site-header h1 { font-size: 0.875rem; }
+}
 
 .main-container {
   max-width: var(--col);

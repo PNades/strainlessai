@@ -136,15 +136,25 @@ svg { flex-shrink: 0; }
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
+/* Three columns with equal sides, so the title (wordmark or h1) in the middle
+   is centered on the full width. Side items go in column 1; --header-side
+   reserves room for them on both sides so the sides stay equal. */
 .site-header-inner {
   max-width: var(--col);
   height: 100%;
   margin: 0 auto;
   padding: 0 var(--s4);
-  display: flex;
+  display: grid;
+  grid-template-columns:
+    minmax(var(--header-side, 0px), 1fr)
+    minmax(0, auto)
+    minmax(var(--header-side, 0px), 1fr);
   align-items: center;
-  gap: var(--s3);
+  column-gap: var(--s3);
 }
+.site-header-inner > * { grid-column: 1; justify-self: start; }
+.site-header-inner > .wordmark,
+.site-header-inner > h1 { grid-column: 2; justify-self: center; text-align: center; }
 .wordmark {
   font-family: var(--font-serif);
   font-weight: 600;
