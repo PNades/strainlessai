@@ -362,27 +362,46 @@ Answer:"""
         logger.error(f"❌ RAG initialization failed: {str(e)}", exc_info=True)
         return False
 
+FRIENDLY_ERROR = "Sorry, I encountered an error. Please try again."
+
+
+class RagError(Exception):
+    """The RAG chain could not produce an answer. Details are logged on the server;
+    callers show FRIENDLY_ERROR to the page with `status` as the HTTP status."""
+
+    def __init__(self, message, status=500):
+        super().__init__(message)
+        self.status = status
+
+
 def get_rag_response(query, history=None, timeout=20):
-    """Get RAG response with timeout protection"""
+    """Get RAG response with timeout protection. Raises RagError on failure (details logged here)."""
     if rag_chain is None:
-        return "RAG system not available"
+        logger.error("❌ RAG requested but the RAG system is not initialized")
+        raise RagError("RAG system not available", status=503)
 
     history_text = "\n".join(
         f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}"
         for m in (history or [])
     )
 
+    start = time.time()
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(rag_chain.invoke, {"query": query, "history": history_text})
-            try:
-                return future.result(timeout=timeout)
-            except concurrent.futures.TimeoutError:
-                logger.error(f"⏱️  RAG request timed out after {timeout}s")
-                return "Coaching temporarily unavailable (timeout)"
+        future = executor.submit(rag_chain.invoke, {"query": query, "history": history_text})
+        return future.result(timeout=timeout)
+    except concurrent.futures.TimeoutError:
+        logger.error(
+            f"⏱️  RAG request timed out after {timeout}s "
+            f"(LLM_MODEL={os.getenv('LLM_MODEL', 'openai/gpt-oss-120b')}, history turns={len(history or [])})"
+        )
+        raise RagError(f"timed out after {timeout}s", status=504)
     except Exception as e:
-        logger.error(f"❌ RAG error: {str(e)}")
-        return f"Error: {str(e)}"
+        logger.exception(f"❌ RAG error after {time.time() - start:.2f}s: {type(e).__name__}: {e}")
+        raise RagError(f"{type(e).__name__}: {e}") from e
+    finally:
+        # Don't wait for a hung call: return the timeout to the caller now.
+        executor.shutdown(wait=False)
 
 # ============================================================================
 # API ENDPOINTS
@@ -505,9 +524,12 @@ def chat():
         response = get_rag_response(message, history=history, timeout=25)
 
         return jsonify({'response': response})
+    except RagError as e:
+        # Real cause already logged by get_rag_response; the page gets the friendly message.
+        return jsonify({'error': FRIENDLY_ERROR}), e.status
     except Exception as e:
-        logger.error(f"❌ Chat error: {str(e)}")
-        return jsonify({'error': f'Error: {str(e)}'}), 500
+        logger.exception(f"❌ Chat error: {type(e).__name__}: {e}")
+        return jsonify({'error': FRIENDLY_ERROR}), 500
 
 @app.route('/health')
 def health():
@@ -710,6 +732,15 @@ let hasMessages = false;
 let conversationHistory = [];
 let isTyping = false;
 let autoStopTimer = null;
+let micStream = null;
+
+// Stop the microphone's tracks so the browser's mic indicator turns off
+function releaseMic() {
+    if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+        micStream = null;
+    }
+}
 
 function setTypingState(typing) {
     isTyping = typing;
@@ -815,6 +846,7 @@ backToChatBtn.addEventListener('click', function() {
     trashBtn.classList.add('hidden');
     checkBtn.classList.add('hidden');
     isRecording = false;
+    releaseMic();
 });
 
 // Info button
@@ -853,7 +885,9 @@ async function startRecording() {
                 noiseSuppression: false
             }
         });
-        
+        releaseMic();
+        micStream = stream;
+
         audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 22050 });
         input = audioContext.createMediaStreamSource(stream);
         processor = audioContext.createScriptProcessor(4096, 1, 1);
@@ -883,6 +917,7 @@ async function startRecording() {
         
     } catch (e) {
         console.error('Microphone error:', e);
+        releaseMic();
         recordingStatus.textContent = 'Error: ' + e.message;
     }
 }
@@ -894,7 +929,8 @@ function stopRecording() {
         processor.disconnect();
         input.disconnect();
         audioContext.close();
-        
+        releaseMic();
+
         let totalLength = 0;
         for (let chunk of audioChunks) totalLength += chunk.length;
         
@@ -920,6 +956,7 @@ function stopRecording() {
 function discardRecording() {
     recordedBlob = null;
     isRecording = false;
+    releaseMic();
     recordingStatus.textContent = 'Click the microphone to begin...';
     micBtn.classList.remove('hidden');
     trashBtn.classList.add('hidden');
