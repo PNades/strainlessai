@@ -1027,12 +1027,18 @@ function displayVoiceResult(result) {
     const prediction = result.prediction;
     
     // Create message with HTML for classification (single line: typeWriter matches it via outerHTML)
-    let resultText = `\n\n<div class="classification-result result-card" data-result="${prediction}"><div class="result-head"><span class="result-icon" aria-hidden="true"></span><div><span class="result-kicker">Voice check</span><span class="result-label">${prediction}</span></div></div><div class="result-breakdown"><strong>Breakdown:</strong>`;
+    let resultText = `\n\n<div class="classification-result"><div class="result-card" data-result="${prediction}"><div class="result-head"><span class="result-icon" aria-hidden="true"></span><div><span class="result-kicker">Voice check</span><span class="result-label">${prediction}</span></div></div><div class="result-breakdown"><strong>Breakdown:</strong>`;
     result.all_predictions.forEach(pred => {
         const pct = (pred.confidence * 100).toFixed(1);
         resultText += `<div class="bd-row" data-class="${pred.class}"><span class="bd-name">${pred.class}</span><span class="bd-track" aria-hidden="true"><span class="bd-fill" style="--p: ${pct}%"></span></span><span class="bd-pct">${pct}%</span></div>`;
     });
     resultText += `</div></div>`;
+
+    // Strained/Weak results normally come with coaching; if it's missing, coaching failed to load
+    if ((prediction === 'Strained' || prediction === 'Weak') && !result.coaching_response) {
+        resultText += `<p class="coaching-note">Coaching tips couldn't load right now. Ask the coach below for help.</p>`;
+    }
+    resultText += `</div>`;
 
     if (result.coaching_response) {
         resultText += `\n${result.coaching_response}`;

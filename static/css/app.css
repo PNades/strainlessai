@@ -125,6 +125,21 @@ html {
 }
 
 /* ---------- Result card (status colours only; no accent inside) ---------- */
+.classification-result {
+  display: block;
+  white-space: normal;
+}
+
+/* Quiet note under the card when coaching couldn't load (informational, not an error) */
+.coaching-note {
+  margin-top: var(--s3);
+  padding-left: var(--s3);
+  border-left: 3px solid var(--line);
+  color: var(--muted);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+}
+
 .result-card {
   --rc: var(--muted);
   --rc-soft: var(--chip);
