@@ -230,10 +230,15 @@ def initialize_rag_system():
             api_key=qdrant_api_key
         )
         
-        logger.info("🤖 Initializing Groq LLM...")
+        llm_model = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")
+        logger.info(f"🤖 Initializing Groq LLM ({llm_model})...")
         llm = ChatGroq(
             api_key=groq_api_key,
-            model="llama-3.3-70b-versatile",
+            model=llm_model,
+            # gpt-oss is a reasoning model; only gpt-oss accepts low/medium/high.
+            # Its reasoning comes back in a separate field, so StrOutputParser
+            # passes only the final answer to the page.
+            reasoning_effort="low" if llm_model.startswith("openai/gpt-oss") else None,
             timeout=25.0,
             max_retries=1
         )
