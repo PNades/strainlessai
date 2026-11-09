@@ -572,8 +572,6 @@ src="https://www.facebook.com/tr?id=1248474623849036&ev=PageView&noscript=1"
 <!-- Favicon Links -->
 <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/static/android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/static/android-chrome-512x512.png">
 <link rel="manifest" href="/static/site.webmanifest">
 
 <meta charset="utf-8">
@@ -711,6 +709,7 @@ let recordedBlob = null;
 let hasMessages = false;
 let conversationHistory = [];
 let isTyping = false;
+let autoStopTimer = null;
 
 function setTypingState(typing) {
     isTyping = typing;
@@ -876,7 +875,9 @@ async function startRecording() {
         trashBtn.classList.remove('hidden');
         checkBtn.classList.remove('hidden');
         
-        setTimeout(() => {
+        // Replace any auto-stop left over from an earlier recording, so it can't cut this one short
+        clearTimeout(autoStopTimer);
+        autoStopTimer = setTimeout(() => {
             if (isRecording) stopRecording();
         }, 9000);
         
@@ -967,6 +968,9 @@ async function analyzeRecording() {
         console.error('Analysis error:', e);
         recordingStatus.textContent = 'Error analyzing voice';
     } finally {
+        // Re-enable Analyze so the next recording can be analyzed without reloading
+        checkBtn.disabled = false;
+        checkBtn.style.opacity = '1';
         if (!isTyping) {
             sendBtn.disabled = false;
             sendBtn.style.opacity = '1';
@@ -1096,6 +1100,13 @@ async function sendMessage() {
         const result = await response.json();
 
         chatMessages.removeChild(typingDiv);
+
+        if (!response.ok || typeof result.response !== 'string') {
+            // e.g. 500 {"error": "Chat system not available"}: show a friendly message, keep it out of the history
+            console.error('Chat error:', result.error || response.status);
+            addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            return;
+        }
 
         conversationHistory.push({ role: 'user', content: message });
         conversationHistory.push({ role: 'assistant', content: result.response });
