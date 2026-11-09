@@ -1,0 +1,585 @@
+/* StrainlessAI v1 — main page (layout A: docked composer). Requires base.css. */
+
+:root {
+  --dock-h: 160px; /* fallback; static/js/ui.js measures the real height */
+  --kb: 0px;       /* on-screen keyboard height (ui.js, iOS) */
+}
+
+html {
+  scroll-padding-top: calc(var(--header-h) + var(--s3));
+  scroll-padding-bottom: calc(var(--dock-h) + var(--kb) + var(--s3));
+}
+
+.hidden { display: none !important; }
+
+/* ---------- Page column ---------- */
+.main-container {
+  max-width: var(--col);
+  margin: 0 auto;
+  padding: 0 var(--s4);
+  min-height: calc(100vh - var(--header-h));
+  min-height: calc(100dvh - var(--header-h));
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Hero (idle) ---------- */
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--s3);
+  text-align: center;
+  padding: var(--s6) 0 calc(var(--dock-h) + var(--kb) + var(--s5));
+}
+.main-title { max-width: 18ch; }
+.hero-sub {
+  max-width: 34ch;
+  color: var(--muted);
+}
+
+/* ---------- Conversation ---------- */
+.chat-messages {
+  padding: var(--s5) 0 calc(var(--dock-h) + var(--kb) + var(--s5));
+}
+
+.chat-message {
+  display: flex;
+  margin-bottom: var(--s5);
+}
+.chat-message.user { justify-content: flex-end; }
+.chat-message.bot { justify-content: flex-start; }
+
+.message-content {
+  max-width: 85%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.chat-message.user .message-content {
+  background: var(--accent-soft);
+  color: var(--text);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--radius) var(--radius) var(--s1) var(--radius);
+}
+.chat-message.bot .message-content {
+  width: 100%;
+  max-width: 62ch;
+}
+.chat-message.bot .message-content::before {
+  content: "Coach";
+  display: block;
+  margin-bottom: var(--s1);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--muted);
+  white-space: normal;
+}
+
+/* Error replies (flagged by ui.js from the text the app already writes) */
+.chat-message.bot .message-content.is-error {
+  width: auto;
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-weight: 600;
+  padding: var(--s3);
+  border-radius: var(--radius-sm);
+}
+.chat-message.bot .message-content.is-error::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 0 var(--s2) 0 0;
+  border-radius: 50%;
+  background: var(--bad);
+  color: var(--surface);
+  font-size: 0.85rem;
+  line-height: 1;
+  vertical-align: 2px;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  height: 24px;
+}
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: typing 1.4s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-4px); }
+}
+
+/* ---------- Result card (status colours only; no accent inside) ---------- */
+.result-card {
+  --rc: var(--muted);
+  --rc-soft: var(--chip);
+  --rc-line: var(--line);
+  display: block;
+  white-space: normal;
+  background: var(--rc-soft);
+  border: 2px solid var(--rc-line);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  color: var(--text);
+}
+.result-card[data-result="Healthy"]  { --rc: var(--ok);   --rc-soft: var(--ok-soft);   --rc-line: var(--ok-line); }
+.result-card[data-result="Weak"]     { --rc: var(--warn); --rc-soft: var(--warn-soft); --rc-line: var(--warn-line); }
+.result-card[data-result="Strained"] { --rc: var(--bad);  --rc-soft: var(--bad-soft);  --rc-line: var(--bad-line); }
+
+.result-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+.result-kicker {
+  display: block;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.result-label {
+  display: block;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.7rem;
+  line-height: 1.2;
+  color: var(--rc);
+}
+
+/* Icon shapes: check (Healthy), half circle (Weak), alert (Strained) */
+.result-icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid var(--rc);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.result-card[data-result="Healthy"] .result-icon { background: var(--rc); }
+.result-card[data-result="Healthy"] .result-icon::after {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 6px;
+  width: 9px;
+  height: 17px;
+  border: solid var(--surface);
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+.result-card[data-result="Weak"] .result-icon {
+  background: linear-gradient(90deg, var(--rc) 50%, var(--surface) 50%);
+}
+.result-card[data-result="Strained"] .result-icon { background: var(--rc); }
+.result-card[data-result="Strained"] .result-icon::after {
+  content: "!";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--surface);
+  font-weight: 600;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.result-breakdown {
+  margin-top: var(--s4);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--rc-line);
+  display: grid;
+  gap: var(--s2);
+}
+.result-breakdown > strong {
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+.bd-row {
+  display: grid;
+  grid-template-columns: 5.5em 1fr 4.2em;
+  align-items: center;
+  gap: var(--s3);
+  font-size: var(--fs-small);
+}
+.bd-name { font-weight: 600; }
+.bd-track {
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  overflow: hidden;
+}
+.bd-fill {
+  display: block;
+  height: 100%;
+  width: var(--p, 0%);
+  border-radius: var(--radius-pill);
+  background: var(--muted);
+}
+.bd-row[data-class="Healthy"]  .bd-fill { background: var(--ok); }
+.bd-row[data-class="Weak"]     .bd-fill { background: var(--warn-line); }
+.bd-row[data-class="Strained"] .bd-fill { background: var(--bad); }
+.bd-pct {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Vocab words + tooltip (tap, never hover-only) ---------- */
+.vocab-word {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: underline dotted 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 150ms ease-out;
+}
+.vocab-word:hover, .vocab-word:active { background: var(--accent-soft); }
+
+.vocab-tooltip {
+  position: absolute;
+  z-index: 9999;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: var(--s3);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sheet);
+  font-size: 1rem;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+/* ---------- Dock (sticky composer / recorder) ---------- */
+.input-container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--kb);
+  z-index: 90;
+  background: var(--surface);
+  box-shadow: var(--shadow-bar);
+  padding: var(--s3) var(--s4) calc(var(--s3) + var(--safe-b));
+}
+html[data-kb] .input-container { padding-bottom: var(--s3); }
+
+.dock-inner {
+  max-width: calc(var(--col) - 2 * var(--s4));
+  margin: 0 auto;
+}
+
+/* Normal mode */
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s2);
+  padding: var(--s1);
+  background: var(--surface);
+  border: 2px solid var(--line-strong);
+  border-radius: var(--radius);
+  transition: border-color 150ms ease-out;
+}
+.composer:focus-within {
+  border-color: var(--accent);
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.input-box {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  max-height: 30vh;
+  max-height: 30dvh;
+  padding: 11px var(--s2);
+  font-size: 1rem; /* 17px on phones: stops iOS zoom */
+  line-height: 1.5;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  outline: none;
+}
+.input-box:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  transition: background-color 150ms ease-out;
+}
+.send-btn:hover, .send-btn:active { background: var(--accent-hover); }
+.send-btn:disabled { cursor: not-allowed; }
+.send-btn svg { width: 22px; height: 22px; }
+
+.button-group {
+  display: flex;
+  gap: var(--s2);
+}
+.button-group .btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 var(--s3);
+}
+.button-group #recordVoiceBtn { flex-grow: 1.2; }
+
+/* Recording mode */
+.recording-interface {
+  display: none;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.recording-interface.active { display: flex; }
+
+.rec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: 28px;
+}
+.rec-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) var(--s3);
+  border-radius: var(--radius-pill);
+  background: var(--chip);
+  color: var(--muted);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.rec-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.rec-chip-label::after { content: "Ready"; }
+
+.rec-timer {
+  font-size: var(--fs-small);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  visibility: hidden;
+}
+
+.rec-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--chip);
+  overflow: hidden;
+}
+.rec-fill {
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+  transform: scaleX(var(--rec-frac, 0));
+}
+
+.recording-status {
+  min-height: 1.5em;
+  color: var(--text);
+}
+
+/* State styling (data-state set by ui.js from the status text) */
+.recording-interface[data-state="recording"] .rec-chip,
+.recording-interface[data-state="recorded"] .rec-chip,
+.recording-interface[data-state="processing"] .rec-chip,
+.recording-interface[data-state="done"] .rec-chip {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.recording-interface[data-state="recording"] .rec-dot { animation: rec-pulse 1.2s ease-in-out infinite; }
+.recording-interface[data-state="processing"] .rec-dot {
+  background: transparent;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+.recording-interface[data-state="error"] .rec-chip { background: var(--bad-soft); color: var(--bad); }
+.recording-interface[data-state="error"] .recording-status { color: var(--bad); font-weight: 600; }
+
+.recording-interface[data-state="recording"] .rec-chip-label::after { content: "Recording"; }
+.recording-interface[data-state="recorded"] .rec-chip-label::after { content: "Ready to analyze"; }
+.recording-interface[data-state="processing"] .rec-chip-label::after { content: "Analyzing"; }
+.recording-interface[data-state="done"] .rec-chip-label::after { content: "Done"; }
+.recording-interface[data-state="error"] .rec-chip-label::after { content: "Error"; }
+
+.recording-interface[data-state="recording"] .rec-timer,
+.recording-interface[data-state="recorded"] .rec-timer { visibility: visible; }
+
+@keyframes rec-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Recorder buttons: phones = main action row, then Back + Info; >= 600 = one row */
+.recording-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+.recording-buttons-right { display: contents; }
+
+#micBtn { order: 1; flex: 1 1 100%; }
+#trashBtn, #checkBtn { order: 1; flex: 1 1 calc(50% - var(--s1)); }
+#backToChatBtn { order: 2; flex: 1 1 0; }
+#infoBtn { order: 3; }
+
+.info-btn {
+  border: 2px solid var(--line-strong);
+  color: var(--muted);
+}
+
+@media (min-width: 600px) {
+  .recording-buttons { flex-wrap: nowrap; align-items: center; }
+  #backToChatBtn { order: 0; flex: 0 0 auto; margin-right: auto; }
+  #infoBtn { order: 1; }
+  #micBtn, #trashBtn, #checkBtn { order: 2; flex: 0 0 auto; min-width: 148px; }
+}
+
+/* ---------- Instructions: bottom sheet on phones, dialog from 768 ---------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: var(--overlay);
+}
+.modal-overlay.active { display: block; }
+
+.instructions-modal {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: var(--bg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-sheet);
+  padding: var(--s5) var(--s4) calc(var(--s4) + var(--safe-b));
+}
+.instructions-modal.active {
+  display: block;
+  animation: sheet-in 200ms ease-out;
+}
+.instructions-modal h2 { margin-bottom: var(--s2); }
+.instructions-modal p { color: var(--muted); margin-bottom: var(--s4); max-width: 62ch; }
+
+@keyframes sheet-in {
+  from { opacity: 0; translate: 0 8px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media (min-width: 768px) {
+  .instructions-modal {
+    left: 50%;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    width: min(480px, calc(100vw - 2 * var(--s4)));
+    transform: translate(-50%, -50%);
+    border-radius: var(--radius-lg);
+    padding: var(--s5);
+  }
+}
+
+.example-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+@media (min-width: 480px) {
+  .example-buttons { flex-direction: row; }
+}
+.example-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: flex-start;
+  padding: 0 var(--s3) 0 var(--s2);
+}
+.play-disc {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  flex-shrink: 0;
+}
+.play-disc::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 9px;
+  border-style: solid;
+  border-width: 7px 0 7px 11px;
+  border-color: transparent transparent transparent var(--accent);
+}
+.record-now-btn {
+  width: 100%;
+  margin-top: var(--s4);
+}
+
+/* ---------- Scroll to bottom ---------- */
+.scroll-to-bottom {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--dock-h) + var(--kb) + var(--s3));
+  transform: translateX(-50%);
+  z-index: 50;
+  width: 48px;
+  height: 48px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sheet);
+}
+.scroll-to-bottom.visible { display: flex; }
+.scroll-to-bottom svg { width: 22px; height: 22px; }
+
+/* Hidden audio elements */
+#audioPlayback, #examplePlayer { display: none; }

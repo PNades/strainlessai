@@ -540,7 +540,7 @@ def index():
 # ============================================================================
 
 HTML_TEMPLATE = '''<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-4LX04LNZKT"></script>
@@ -576,681 +576,122 @@ src="https://www.facebook.com/tr?id=1248474623849036&ev=PageView&noscript=1"
 <link rel="icon" type="image/png" sizes="512x512" href="/static/android-chrome-512x512.png">
 <link rel="manifest" href="/static/site.webmanifest">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Strainless AI</title>
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f8f9fa;
-    color: #333;
-    line-height: 1.6;
-    overflow-x: hidden;
-}
-
-/* Desktop Layout */
-@media (min-width: 768px) {
-    .mobile-header {
-        display: none;
-    }
-    
-    .desktop-header {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: white;
-        padding: 15px 30px;
-        border-bottom: 1px solid #e2e8f0;
-        z-index: 100;
-    }
-    
-    .desktop-header h1 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #2d3748;
-    }
-    
-    .main-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        padding: 60px 20px 20px;
-    }
-    
-    .main-container.has-messages {
-        justify-content: flex-start;
-        padding-top: 70px;
-    }
-    
-    .centered-content {
-        max-width: 900px;
-        width: 100%;
-        text-align: center;
-        margin-top: -30px;
-    }
-    
-    .main-title {
-        font-size: 2.5rem;
-        font-weight: 400;
-        color: #2d3748;
-        margin-bottom: 40px;
-    }
-    
-    .main-container.has-messages .main-title {
-        display: none;
-    }
-    
-    .chat-messages {
-        max-width: 900px;
-        width: 100%;
-        margin: 0 auto 20px;
-        padding: 20px;
-        padding-bottom: 180px;
-    }
-    
-    .input-container {
-        max-width: 900px;
-        width: 100%;
-        margin: 0 auto;
-        position: relative;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 24px;
-        padding: 12px 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    
-    .main-container.has-messages .input-container {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-}
-
-/* Mobile Layout */
-@media (max-width: 767px) {
-    .desktop-header {
-        display: none;
-    }
-    
-    .mobile-header {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: white;
-        padding: 15px 20px;
-        border-bottom: 1px solid #e2e8f0;
-        text-align: center;
-        z-index: 100;
-    }
-    
-    .mobile-header h1 {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #2d3748;
-    }
-    
-    .main-container {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        padding-top: 60px;
-    }
-    
-    .centered-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        padding: 20px;
-        padding-top: 240px;
-        text-align: center;
-    }
-    
-    .main-container.has-messages .centered-content {
-        display: none;
-    }
-    
-    .main-title {
-        font-size: 2rem;
-        font-weight: 400;
-        color: #2d3748;
-        margin-bottom: 40px;
-    }
-    
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        padding-bottom: 240px;
-    }
-    
-    .input-container {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        right: 20px;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 24px;
-        padding: 12px 16px 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-}
-
-/* Classification Result Styling */
-.classification-result {
-    font-size: 2.0rem;
-    font-weight: 600;
-    display: block;
-    margin-bottom: 0.5rem;
-    line-height: 1.2;
-    color: #2d3748;
-}
-
-@media (max-width: 767px) {
-    .classification-result {
-        font-size: 1.8rem;
-    }
-}
-
-/* Input Container Styles */
-.input-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-.input-box {
-    width: 100%;
-    min-height: 24px;
-    max-height: 240px;
-    padding: 10px 12px;
-    border: none;
-    outline: none;
-    font-size: 1rem;
-    font-family: inherit;
-    line-height: 1.5;
-    overflow-y: auto;
-    box-sizing: border-box;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-.input-box:empty:before {
-    content: attr(data-placeholder);
-    color: #a0aec0;
-    pointer-events: none;
-}
-
-.input-box:focus:empty:before {
-    content: attr(data-placeholder);
-    color: #a0aec0;
-}
-
-.button-group {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    padding-left: 4px;
-}
-
-.record-voice-btn, .back-to-chat-btn, .record-now-btn {
-    background: #3182ce;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    padding: 12px 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.2s;
-}
-
-.record-voice-btn:hover, .back-to-chat-btn:hover, .record-now-btn:hover {
-    background: #2c5aa0;
-}
-
-.record-now-btn {
-    width: 100%;
-    margin: 20px 0 0 0;
-    padding: 12px;
-    font-size: 1rem;
-}
-
-.send-btn {
-    background: #3182ce;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1.3rem;
-    transition: background 0.2s;
-    flex-shrink: 0;
-    line-height: 1;
-    padding-bottom: 2px;
-}
-
-.send-btn:hover {
-    background: #2c5aa0;
-}
-
-/* Recording Interface */
-.recording-interface {
-    display: none;
-    flex-direction: column;
-    gap: 22px;
-}
-
-.recording-interface.active {
-    display: flex;
-}
-
-.recording-status {
-    color: #718096;
-    font-size: 0.95rem;
-    padding: 10px 12px;
-    min-height: 24px;
-}
-
-.recording-buttons {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    padding-left: 4px;
-}
-
-.recording-buttons-right {
-    display: flex;
-    gap: 8px;
-}
-
-.icon-btn {
-    width: 44px;
-    height: 44px;
-    border: 1px solid #e2e8f0;
-    background: #3182ce;
-    color: white;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.icon-btn:hover {
-    background: #2c5aa0;
-}
-
-.icon-btn.info-btn {
-    background: white;
-    color: #718096;
-    border: 1px solid #e2e8f0;
-}
-
-.icon-btn.info-btn:hover {
-    background: #f7fafc;
-    color: #4a5568;
-}
-
-.icon-btn svg {
-    width: 22px;
-    height: 22px;
-}
-
-/* Chat Messages - ChatGPT Style */
-.chat-message {
-    margin-bottom: 24px;
-    display: flex;
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
-.chat-message.user {
-    justify-content: flex-end;
-}
-
-.chat-message.bot {
-    justify-content: flex-start;
-}
-
-.message-content {
-    max-width: 70%;
-    padding: 12px 16px;
-    border-radius: 18px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-.chat-message.user .message-content {
-    background: #e5e7eb;
-    color: #1f2937;
-    border-bottom-right-radius: 4px;
-}
-
-.chat-message.bot .message-content {
-    background: transparent;
-    color: #374151;
-    padding-left: 0;
-    max-width: 100%;
-}
-
-/* Typing Indicator */
-.typing-indicator {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0;
-}
-
-.typing-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #9ca3af;
-    animation: typing 1.4s infinite;
-}
-
-.typing-dot:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-@keyframes typing {
-    0%, 60%, 100% {
-        opacity: 0.3;
-        transform: translateY(0);
-    }
-    30% {
-        opacity: 1;
-        transform: translateY(-10px);
-    }
-}
-
-/* Modal Overlay */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 999;
-    backdrop-filter: blur(2px);
-}
-
-.modal-overlay.active {
-    display: block;
-}
-
-/* Instructions Modal */
-.instructions-modal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border-radius: 16px;
-    padding: 30px;
-    max-width: 500px;
-    width: 90%;
-    z-index: 1000;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-}
-
-.instructions-modal.active {
-    display: block;
-}
-
-.instructions-modal h3 {
-    font-size: 1.3rem;
-    margin-bottom: 15px;
-    color: #2d3748;
-}
-
-.instructions-modal p {
-    color: #4a5568;
-    margin-bottom: 20px;
-    line-height: 1.6;
-}
-
-.example-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: space-between;
-}
-
-.example-btn {
-    flex: 1;
-    padding: 10px 20px;
-    background: #e2e8f0;
-    color: #4a5568;
-    border: 1px solid #cbd5e0;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.example-btn:hover {
-    background: #cbd5e0;
-    color: #2d3748;
-}
-
-/* Vocab Highlighting */
-.vocab-word {
-    color: #2563eb;
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 2px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-}
-
-.vocab-word:hover {
-    color: #1d4ed8;
-    background: rgba(37, 99, 235, 0.1);
-    padding: 2px 4px;
-    margin: -2px -4px;
-    border-radius: 3px;
-}
-
-.vocab-tooltip {
-    position: absolute;
-    background: white;
-    color: #2d3748;
-    border: 1px solid #cbd5e0;
-    border-radius: 8px;
-    padding: 10px 14px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    z-index: 9999;
-    max-width: 300px;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    pointer-events: none;
-}
-
-/* Utility */
-.hidden {
-    display: none !important;
-}
-
-/* Scroll to bottom button */
-.scroll-to-bottom {
-    position: fixed;
-    bottom: 180px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 40px;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 50%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    z-index: 50;
-    transition: all 0.2s;
-}
-
-.scroll-to-bottom:hover {
-    background: #f7fafc;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.scroll-to-bottom.visible {
-    display: flex;
-}
-
-.scroll-to-bottom svg {
-    width: 20px;
-    height: 20px;
-    color: #4a5568;
-}
-
-@media (max-width: 767px) {
-    .scroll-to-bottom {
-        bottom: 180px;
-    }
-}
-
-/* Audio Player */
-#audioPlayback {
-    width: 100%;
-    margin: 15px 0;
-}
-
-#examplePlayer {
-    display: none;
-}
-</style>
+<link rel="preload" href="/static/fonts/source-sans-3-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/lora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/css/base.css">
+<link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
 
-<!-- Desktop Header -->
-<div class="desktop-header">
-    <h1>Strainless</h1>
-</div>
-
-<!-- Mobile Header -->
-<div class="mobile-header">
-    <h1>Strainless</h1>
-</div>
+<!-- Header -->
+<header class="site-header">
+    <div class="site-header-inner">
+        <span class="wordmark">Strainless</span>
+    </div>
+</header>
 
 <!-- Main Container -->
-<div class="main-container" id="mainContainer">
+<main class="main-container" id="mainContainer">
     <!-- Centered Content (shown when no messages) -->
-    <div class="centered-content" id="centeredContent">
+    <section class="centered-content hero" id="centeredContent">
         <h1 class="main-title">Experiencing vocal troubles?</h1>
-    </div>
-    
+        <p class="hero-sub">Sing a short &ldquo;ah&rdquo; arpeggio for a voice check, or ask any singing question.</p>
+    </section>
+
     <!-- Chat Messages -->
     <div class="chat-messages hidden" id="chatMessages"></div>
-    
-    <!-- Input Container -->
+
+    <!-- Input Container (docked to the bottom) -->
     <div class="input-container">
+      <div class="dock-inner">
         <!-- Normal Input Mode -->
         <div class="input-wrapper" id="normalInput">
-            <div 
-                class="input-box" 
-                id="chatInput" 
-                contenteditable="true"
-                data-placeholder="Ask anything singing-related..."
-            ></div>
+            <div class="composer">
+                <div
+                    class="input-box"
+                    id="chatInput"
+                    contenteditable="true"
+                    role="textbox"
+                    aria-multiline="true"
+                    aria-label="Ask a singing question"
+                    data-placeholder="Ask anything singing-related..."
+                ></div>
+                <button class="send-btn" id="sendBtn" aria-label="Send message" title="Send">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="m5 12 7-7 7 7"></path></svg>
+                </button>
+            </div>
             <div class="button-group">
-                <div style="display: flex; gap: 10px;">
-                    <button class="record-voice-btn" id="recordVoiceBtn">Analyze Voice</button>
-                    <button class="record-voice-btn" id="pitchTrainerBtn" onclick="window.location.href='/trainer'">Pitch Trainer</button>
-                </div>
-                <button class="send-btn" id="sendBtn">↗</button>
+                <button class="btn btn-primary big record-voice-btn" id="recordVoiceBtn">
+                    <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                    Analyze Voice
+                </button>
+                <button class="btn btn-secondary big record-voice-btn" id="pitchTrainerBtn" onclick="window.location.href='/trainer'">Pitch Trainer</button>
             </div>
         </div>
-        
-        <!-- Recording Mode -->
+
         <!-- Recording Mode -->
         <div class="recording-interface" id="recordingInterface">
-            <div class="recording-status" id="recordingStatus">Click the microphone to begin...</div>
+            <div class="rec-head" aria-hidden="true">
+                <span class="rec-chip"><span class="rec-dot"></span><span class="rec-chip-label"></span></span>
+                <span class="rec-timer">0:00 / 0:09</span>
+            </div>
+            <div class="rec-track" aria-hidden="true"><div class="rec-fill"></div></div>
+            <div class="recording-status" id="recordingStatus" role="status" aria-live="polite">Click the microphone to begin...</div>
             <div class="recording-buttons">
-                <button class="back-to-chat-btn" id="backToChatBtn">Back to chat</button>
+                <button class="btn btn-secondary back-to-chat-btn" id="backToChatBtn">Back to chat</button>
                 <div class="recording-buttons-right">
-                    <button class="icon-btn info-btn" id="infoBtn" title="Show instructions">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="icon-button info-btn" id="infoBtn" title="Show instructions" aria-label="Show instructions">
+                        <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10" stroke-width="2"></circle>
                             <line x1="12" y1="16" x2="12" y2="12" stroke-width="2" stroke-linecap="round"></line>
                             <circle cx="12" cy="8" r="1" fill="currentColor"></circle>
                         </svg>
                     </button>
-                    <button class="icon-btn" id="micBtn" title="Record now">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                        </svg>
+                    <button class="btn btn-primary big" id="micBtn" title="Record now">
+                        <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        Record
                     </button>
-                    <button class="icon-btn hidden" id="trashBtn" title="Discard recording">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="btn btn-danger big hidden" id="trashBtn" title="Discard recording">
+                        <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
+                        Discard
                     </button>
-                    <button class="icon-btn hidden" id="checkBtn" title="Analyze recording">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="btn btn-primary big hidden" id="checkBtn" title="Analyze recording">
+                        <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
+                        Analyze
                     </button>
                 </div>
             </div>
         </div>
+      </div>
     </div>
-</div>
+</main>
 
 <!-- Modal Overlay -->
 <div class="modal-overlay" id="modalOverlay"></div>
 
 <!-- Scroll to Bottom Button -->
-<button class="scroll-to-bottom" id="scrollToBottomBtn">
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<button class="scroll-to-bottom" id="scrollToBottomBtn" aria-label="Scroll to latest message">
+    <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
     </svg>
 </button>
 
 <!-- Instructions Modal -->
-<div class="instructions-modal" id="instructionsModal">
-    <h3>Voice Recording Instructions</h3>
+<div class="instructions-modal" id="instructionsModal" role="dialog" aria-modal="true" aria-labelledby="instructionsTitle">
+    <h2 id="instructionsTitle">Voice Recording Instructions</h2>
     <p>Sing an arpeggio on an "ah" vowel. Listen to the examples:</p>
     <div class="example-buttons">
-        <button class="example-btn" onclick="playExample('male_example.wav')">Male Example</button>
-        <button class="example-btn" onclick="playExample('female_example.wav')">Female Example</button>
+        <button class="btn btn-secondary example-btn" onclick="playExample('male_example.wav')"><span class="play-disc" aria-hidden="true"></span>Male Example</button>
+        <button class="btn btn-secondary example-btn" onclick="playExample('female_example.wav')"><span class="play-disc" aria-hidden="true"></span>Female Example</button>
     </div>
-    <button class="record-now-btn" onclick="closeInstructionsModal()">I'm Ready to Record</button>
+    <button class="btn btn-primary big record-now-btn" onclick="closeInstructionsModal()">I'm Ready to Record</button>
 </div>
 
 <!-- Hidden Audio Players -->
@@ -1544,14 +985,14 @@ function displayVoiceResult(result) {
     
     const prediction = result.prediction;
     
-    // Create message with HTML for classification
-    let resultText = `\n\n<span class="classification-result">${prediction}</span>\n`;
-    resultText += `<strong>Breakdown:</strong>\n`;
-    
+    // Create message with HTML for classification (single line: typeWriter matches it via outerHTML)
+    let resultText = `\n\n<div class="classification-result result-card" data-result="${prediction}"><div class="result-head"><span class="result-icon" aria-hidden="true"></span><div><span class="result-kicker">Voice check</span><span class="result-label">${prediction}</span></div></div><div class="result-breakdown"><strong>Breakdown:</strong>`;
     result.all_predictions.forEach(pred => {
-        resultText += `${pred.class}: ${(pred.confidence * 100).toFixed(1)}%\n`;
+        const pct = (pred.confidence * 100).toFixed(1);
+        resultText += `<div class="bd-row" data-class="${pred.class}"><span class="bd-name">${pred.class}</span><span class="bd-track" aria-hidden="true"><span class="bd-fill" style="--p: ${pct}%"></span></span><span class="bd-pct">${pct}%</span></div>`;
     });
-    
+    resultText += `</div></div>`;
+
     if (result.coaching_response) {
         resultText += `\n${result.coaching_response}`;
     }
@@ -1903,6 +1344,7 @@ function playExample(filename) {
     player.play();
 }
 </script>
+<script src="/static/js/ui.js" defer></script>
 
 </body>
 </html>
